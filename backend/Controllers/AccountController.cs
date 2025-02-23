@@ -12,10 +12,13 @@ namespace backend.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AccountController(UserManager<IdentityUser> userManager)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+
         }
 
         [HttpPost("Register")]
@@ -47,6 +50,31 @@ namespace backend.Controllers
             {
                 return BadRequest(new { errors = createdUser.Errors.Select(e => e.Description) });
             }
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                return Unauthorized(new { errors = "Invalid email!"});
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+
+            if (!result.Succeeded)
+            {
+                return Unauthorized(new { errors = "Invalid password!" });
+            }
+
+            return Ok(new { message = "Login successfully" });
         }
     }
 }
