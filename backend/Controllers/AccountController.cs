@@ -3,6 +3,7 @@ using backend.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace backend.Controllers
 {
@@ -25,19 +26,26 @@ namespace backend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = new User { UserName = model.Email, Email = model.Email };
+            var user = new User { UserName = model.UserName, Email = model.Email };
 
             var createdUser = await _userManager.CreateAsync(user, model.Password);
 
             if (createdUser.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "User");
+                var roleResult = await _userManager.AddToRoleAsync(user, "User");
 
-                return Ok(createdUser);
+                if (roleResult.Succeeded)
+                {
+                    return Ok(new { message = "User successfully registered" });
+                }
+                else
+                {
+                    return BadRequest(new { errors = roleResult.Errors.Select(e => e.Description) });
+                }
             }
             else
             {
-                return StatusCode(500, createdUser.Errors);
+                return BadRequest(new { errors = createdUser.Errors.Select(e => e.Description) });
             }
         }
     }

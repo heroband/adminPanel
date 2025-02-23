@@ -25,6 +25,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://192.168.144.1:5500").AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -46,6 +54,8 @@ using (var scope = app.Services.CreateScope())
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
