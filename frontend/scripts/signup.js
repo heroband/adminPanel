@@ -1,3 +1,5 @@
+import AuthService from "../services/AuthService.js";
+
 function setupSignupForm() {
     const form = document.getElementById("signupForm");
 
@@ -10,8 +12,7 @@ function setupSignupForm() {
         const responseMessage = document.getElementById("responseMessage");
 
         try {
-            const response = await apiRequest("http://localhost:5239/api/Account/Register", "POST", {userName, email, password});
-
+            await AuthService.register({userName, email, password})
             responseMessage.textContent = "User successfully registered!";
             responseMessage.style.color = "white";
 

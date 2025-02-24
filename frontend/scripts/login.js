@@ -1,3 +1,5 @@
+import AuthService from "../services/AuthService.js";
+
 function setupLoginForm() {
     const form = document.getElementById("loginForm");
 
@@ -9,7 +11,7 @@ function setupLoginForm() {
         const responseMessage = document.getElementById("responseMessage");
 
         try {
-            const response = await apiRequest("http://localhost:5239/api/Account/Login", "POST", { email, password })
+            await AuthService.login({email, password});
             responseMessage.textContent = "Login successful!";
             responseMessage.style.color = "white";
 
