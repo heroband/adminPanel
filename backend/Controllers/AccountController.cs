@@ -29,6 +29,12 @@ namespace backend.Controllers
                 return BadRequest(ModelState);
             }
 
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                return BadRequest(new { errors = new[] { $"Email '{model.Email}' is already taken." } });
+            }
+
             var user = new User { UserName = model.UserName, Email = model.Email };
 
             var createdUser = await _userManager.CreateAsync(user, model.Password);

@@ -8,26 +8,16 @@ function setupLoginForm() {
         const password = document.getElementById("password").value;
         const responseMessage = document.getElementById("responseMessage");
 
-        const response = await fetch("http://localhost:5239/api/Account/Login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password })
-        });
-
-        const responseData = await response.json();
-        console.log(responseData)
-
-        if (response.ok) {
+        try {
+            const response = await apiRequest("http://localhost:5239/api/Account/Login", "POST", { email, password })
             responseMessage.textContent = "Login successful!";
             responseMessage.style.color = "white";
 
             setTimeout(() => {
                 window.location.href = "../index.html";
             }, 3000);
-        } else {
-            responseMessage.textContent = responseData.errors;
+        } catch (error) {
+            responseMessage.textContent = error.message;
             responseMessage.style.color = "red";
         }
     });
