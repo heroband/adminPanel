@@ -16,6 +16,8 @@ class AuthService {
         try{
             const response = await fetch(`${this.baseUrl}/${endpoint}`, options);
             const responseData = await response.json();
+
+            
             console.log("API Response:", responseData);
 
             if (!response.ok) {

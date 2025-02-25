@@ -1,5 +1,7 @@
 ﻿using backend.Dtos.Account;
+using backend.Interfaces;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +15,13 @@ namespace backend.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ITokenService _tokenService;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-
+            _tokenService = tokenService;
         }
 
         [HttpPost("Register")]
@@ -42,15 +45,7 @@ namespace backend.Controllers
             if (createdUser.Succeeded)
             {
                 var roleResult = await _userManager.AddToRoleAsync(user, "User");
-
-                if (roleResult.Succeeded)
-                {
-                    return Ok(new { message = "User successfully registered" });
-                }
-                else
-                {
-                    return BadRequest(new { errors = roleResult.Errors.Select(e => e.Description) });
-                }
+                return Ok(new { message = "User successfully registered" });
             }
             else
             {
@@ -80,7 +75,26 @@ namespace backend.Controllers
                 return Unauthorized(new { errors = "Invalid password!" });
             }
 
-            return Ok(new { message = "Login successfully" });
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _tokenService.CreateToken(user, roles);
+
+            return Ok(new
+            {
+                message = "Login successfully",
+                userName = user.UserName,
+                email = user.Email,
+                token = token
+            });
+        }
+
+        [Authorize]
+        [HttpGet("Profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            return Ok(new { userName = user.UserName, email = user.Email });
         }
     }
 }
